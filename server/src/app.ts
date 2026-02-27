@@ -16,7 +16,9 @@ const app = express();
 
 // We allow one or more frontend origins (comma-separated in .env).
 // This is useful when switching between local/staging frontends.
-const allowedOrigins = env.CORS_ORIGIN.split(",").map((origin) => origin.trim());
+const allowedOrigins = env.CORS_ORIGIN.split(",").map((origin) =>
+  origin.trim(),
+);
 
 // ===== SECURITY MIDDLEWARES (RUN EARLY) =====
 // Helmet adds secure HTTP headers (for example disabling MIME sniffing).
@@ -29,18 +31,19 @@ app.use(
     // Because we use cookie-based refresh tokens, `credentials: true`
     // is required so browsers can include HTTP-only cookies.
     //
-    // If origin is missing (e.g. Postman/server-to-server), we allow it.
+    // If origin is missing (e.g. Postman/server-to-server = undefined), we allow it.
     // If origin is present, we allow only whitelisted frontend URLs.
+    //callback(error, allow)
     origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
         return;
       }
 
-      callback(null, false);
+      callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
-  })
+  }),
 );
 
 app.use(
@@ -55,7 +58,7 @@ app.use(
       success: false,
       message: "Too many requests. Please try again later.",
     },
-  })
+  }),
 );
 
 // ===== REQUEST PARSERS =====
